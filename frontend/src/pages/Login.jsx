@@ -103,11 +103,7 @@ export default function Login() {
     } finally { setLoading(false); }
   };
 
-  const fillDemo = (which) => {
-    setMode('login');
-    if (which === 'client') { setEmail('demo@contractshield.com'); setPassword('demo1234'); }
-    else { setEmail('adv.sharma@law.com'); setPassword('Lawyer@123'); }
-  };
+
 
   /* ── Left-panel feature bullets ── */
   const bullets = [
@@ -234,24 +230,7 @@ export default function Login() {
               </p>
             </div>
 
-            {/* Demo credentials (login only) */}
-            {mode === 'login' && (
-              <div className="mb-6 bg-[#0a1020] border border-white/[0.06] rounded-2xl p-4">
-                <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">Quick Demo Access</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: 'Client Demo', sub: 'demo@contractshield.com', color: 'violet', who: 'client' },
-                    { label: 'Lawyer Demo', sub: 'adv.sharma@law.com', color: 'blue', who: 'lawyer' },
-                  ].map(({ label, sub, color, who }) => (
-                    <button key={who} onClick={() => fillDemo(who)}
-                      className={`text-left bg-${color}-500/8 border border-${color}-500/15 hover:border-${color}-500/30 rounded-xl p-3 transition-all group`}>
-                      <p className={`text-${color}-400 text-xs font-bold mb-0.5`}>{label}</p>
-                      <p className="text-slate-500 text-[10px] font-mono group-hover:text-slate-400 transition-colors truncate">{sub}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Error / Success */}
             {error && (
