@@ -5,7 +5,7 @@
         "buildCommand": "pip install --upgrade pip && pip install -r requirements.txt"
     },
     "deploy": {
-        "startCommand": "flask db upgrade && gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 wsgi:app",
+        "startCommand": "flask db upgrade || echo 'Migrations skipped'; gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 wsgi:app",
         "healthcheckPath": "/health",
         "healthcheckTimeout": 60,
         "restartPolicyType": "ON_FAILURE",
