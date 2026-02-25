@@ -29,16 +29,23 @@ def seed_admin():
             print('[Auth] Admin account created: admin@contractshield.com / Admin@1234')
     except Exception as e:
         print(f'[Auth] seed_admin skipped (DB not ready): {e}')
-        db.session.rollback()
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
 
 
-@auth_bp.before_app_request
+@auth_bp.before_request          # only runs on /api/auth/* — /health is never affected
 def ensure_admin():
-    """Seed admin on first request only (once per server lifetime)."""
+    """Seed admin once on the first auth request."""
     global _admin_seeded
     if not _admin_seeded:
-        seed_admin()
-        _admin_seeded = True
+        try:
+            seed_admin()
+        except Exception as e:
+            print(f'[Auth] ensure_admin outer error: {e}')
+        finally:
+            _admin_seeded = True  # always mark done to avoid retry loops
 
 
 @auth_bp.route('/register', methods=['POST'])
