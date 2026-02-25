@@ -52,11 +52,14 @@ def create_app(config_name=None):
     ).split(',')
     cors_origins = [o.strip() for o in cors_origins if o.strip()]
 
-    # SocketIO — async_mode=threading works with Flask dev server
+    # async_mode must match the gunicorn worker class:
+    #   - production: eventlet (gunicorn --worker-class eventlet)
+    #   - development: threading (Flask dev server)
+    async_mode = 'eventlet' if config_name == 'production' else 'threading'
     socketio.init_app(
         app,
         cors_allowed_origins=cors_origins,
-        async_mode='threading',
+        async_mode=async_mode,
         logger=False,
         engineio_logger=False,
     )
