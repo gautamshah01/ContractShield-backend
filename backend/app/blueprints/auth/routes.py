@@ -9,28 +9,36 @@ from app.blueprints.auth import auth_bp
 from app import db
 from app.models.user import User
 
+_admin_seeded = False
+
 
 def seed_admin():
     """Create the one-and-only admin account if it doesn't exist yet.
     Credentials: admin@contractshield.com / Admin@1234
-    Called automatically on first request.
     """
-    if not User.query.filter_by(role='admin').first():
-        admin = User(
-            email='admin@contractshield.com',
-            password='Admin@1234',
-            full_name='Super Admin',
-            role='admin',
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print('[Auth] Admin account created: admin@contractshield.com / Admin@1234')
+    try:
+        if not User.query.filter_by(role='admin').first():
+            admin = User(
+                email='admin@contractshield.com',
+                password='Admin@1234',
+                full_name='Super Admin',
+                role='admin',
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print('[Auth] Admin account created: admin@contractshield.com / Admin@1234')
+    except Exception as e:
+        print(f'[Auth] seed_admin skipped (DB not ready): {e}')
+        db.session.rollback()
 
 
 @auth_bp.before_app_request
 def ensure_admin():
-    """Seed admin on the very first request."""
-    seed_admin()
+    """Seed admin on first request only (once per server lifetime)."""
+    global _admin_seeded
+    if not _admin_seeded:
+        seed_admin()
+        _admin_seeded = True
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -105,7 +113,7 @@ def login():
         if user.role == 'lawyer' and not user.is_approved:
             return jsonify({
                 'success': False,
-                'error': 'Your lawyer account is pending admin approval. You will be able to log in once approved.',
+                'error': 'Your lawyer account is pending admin approval.',
                 'pending_approval': True,
             }), 403
 
@@ -133,6 +141,7 @@ def get_me():
     user = User.query.get_or_404(int(get_jwt_identity()))
     return jsonify({'success': True, 'user': user.to_dict(include_sensitive=True)}), 200
 
+
 @auth_bp.route('/profile', methods=['PUT'])
 @jwt_required()
 def update_profile():
@@ -148,8 +157,9 @@ def update_profile():
     if 'password' in data and len(data['password']) >= 6:
         user.set_password(data['password'])
     if user.role == 'lawyer':
-        for f in ['specialization','bio','location','bar_council_id']:
-            if f in data: setattr(user, f, data[f])
+        for f in ['specialization', 'bio', 'location', 'bar_council_id']:
+            if f in data:
+                setattr(user, f, data[f])
         if 'experience_yrs' in data:
             user.experience_yrs = int(data['experience_yrs']) if data['experience_yrs'] else None
         if 'hourly_rate' in data:
@@ -158,6 +168,7 @@ def update_profile():
             user.available = bool(data['available'])
     db.session.commit()
     return jsonify({'success': True, 'user': user.to_dict(include_sensitive=True), 'message': 'Profile updated'}), 200
+
 
 @auth_bp.route('/account', methods=['DELETE'])
 @jwt_required()
@@ -168,6 +179,7 @@ def delete_account():
     db.session.delete(user)
     db.session.commit()
     return jsonify({'success': True, 'message': 'Account deleted'}), 200
+
 
 @auth_bp.route('/users/<int:uid>', methods=['GET'])
 @jwt_required()
