@@ -905,7 +905,7 @@ export default function Dashboard() {
                         {!appt ? (
                           <button onClick={() => { setBookingId(lw.id); setBookSuccess(''); }}
                             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-purple-500/30 transition">
-                            ðŸ“… Book Appointment
+                            📅 Book Appointment
                           </button>
                         ) : appt.status === 'pending' ? (
                           <div className="w-full bg-amber-500/10 border border-amber-500/30 text-amber-400 py-2.5 rounded-xl text-sm font-semibold text-center">
